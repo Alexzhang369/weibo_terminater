@@ -47,5 +47,10 @@ def test_numric():
     print(float(a))
     print(float(b))
 
+def test_cookie():
+    with open('./settings/cookies.pkl', 'rb') as f:
+        cookie_dict = pickle.load(f)
+        print(cookie_dict)
+
 if __name__ == '__main__':
-    test_numric()
+    test_cookie()
