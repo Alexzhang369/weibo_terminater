@@ -58,6 +58,7 @@ class Dispatcher(object):
         get all cookies for accounts, dump into pkl, this will only run once, if
         you update accounts, set update to True
         :return:
+        获取账号的cookies，保存到pkl
         """
         if self.update_cookies:
             for account in accounts:
@@ -108,5 +109,3 @@ class Dispatcher(object):
 
     def _init_multi_mode(self):
         pass
-
-

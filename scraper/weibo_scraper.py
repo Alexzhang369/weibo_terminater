@@ -27,16 +27,16 @@ if one banned, another will move on.
 if you care about security, using subsidiary accounts instead.
 
 """
-import re
-import sys
 import os
+import pickle
+import re
+import time
+import traceback
+
 import requests
 from lxml import etree
-import traceback
-from pprint import pprint
+
 from settings.config import COOKIES_SAVE_PATH
-import pickle
-import time
 from utils.string import is_number
 
 
@@ -64,6 +64,7 @@ class WeiBoScraper(object):
         self.num_forwarding = []
         self.num_comment = []
         self.weibo_detail_urls = []
+        self.sleep_time = 1
 
     def _init_cookies(self):
         try:
@@ -167,6 +168,7 @@ class WeiBoScraper(object):
             try:
                 # traverse all weibo, and we will got weibo detail urls
                 # TODO: inside for loop must set sleep avoid banned by official.
+                #page_num = 2
                 for page in range(1, page_num):
                     url2 = 'http://weibo.cn/%s?filter=%s&page=%s' % (self.user_id, self.filter, page)
                     html2 = requests.get(url2, cookies=self.cookie, headers=self.headers).content
@@ -175,8 +177,8 @@ class WeiBoScraper(object):
                     print('---- current solving page {}'.format(page))
 
                     if page % 10 == 0:
-                        print('[ATTEMPTING] rest for 5 minutes to cheat weibo site, avoid being banned.')
-                        time.sleep(60*5)
+                        print('[ATTEMPTING] rest for {} minutes to cheat weibo site, avoid being banned.'.format(self.sleep_time))
+                        time.sleep(60*self.sleep_time)
 
                     if len(info) > 3:
                         for i in range(0, len(info) - 2):
@@ -206,6 +208,9 @@ class WeiBoScraper(object):
                             self.num_comment.append(num_comment)
             except etree.XMLSyntaxError as e:
                 print('get weibo info finished.')
+            except Exception as e1:
+                print(e1)
+                print('get weibo info finished')
             if self.filter == 0:
                 print('共' + str(self.weibo_scraped) + '条微博')
 
@@ -222,7 +227,7 @@ class WeiBoScraper(object):
         """
         weibo_comments_save_path = './weibo_detail/{}.txt'.format(self.user_id)
         if not os.path.exists(weibo_comments_save_path):
-            os.makedirs(os.path.dirname(weibo_comments_save_path))
+            os.system('touch ' + weibo_comments_save_path)
         with open(weibo_comments_save_path, 'w+') as f:
             for i, url in enumerate(self.weibo_detail_urls):
                 print('solving weibo detail from {}'.format(url))
@@ -241,8 +246,8 @@ class WeiBoScraper(object):
                 for page in range(int(all_comment_pages) - 2):
 
                     if page % 10 == 0:
-                        print('[ATTEMPTING] rest for 5 minutes to cheat weibo site, avoid being banned.')
-                        time.sleep(60*5)
+                        print('[ATTEMPTING] rest for {} minutes to cheat weibo site, avoid being banned.'.format(self.sleep_time))
+                        time.sleep(60*self.sleep_time)
 
                     # we crawl from page 2, cause front pages have some noise
                     detail_comment_url = url + '&page=' + str(page + 2)
@@ -269,6 +274,11 @@ class WeiBoScraper(object):
                             print(full_single_comment)
                             f.writelines(full_single_comment + '\n')
                     except etree.XMLSyntaxError as e:
+                        print('-*20')
+                        print('user id {} all done!'.format(self.user_id))
+                        print('all weibo content and comments saved into {}'.format(weibo_comments_save_path))
+                    except Exception as e1:
+                        print(e1)
                         print('-*20')
                         print('user id {} all done!'.format(self.user_id))
                         print('all weibo content and comments saved into {}'.format(weibo_comments_save_path))
